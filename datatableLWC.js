@@ -1,9 +1,8 @@
 import { LightningElement,wire,track} from 'lwc';
 import getContact from '@salesforce/apex/DataTableController.getContact';
-import { updateRecord } from "lightning/uiRecordApi";
-import {ShowToastEvent} from 'lightning/platformShowToastEvent';
+
 const columns = [
-    {label:'First Name',fieldName:'FirstName',type:'text',sortable:"true",editable:true},
+    {label:'First Name',fieldName:'FirstName',type:'text',sortable:"true"},
     {label:'Last Name',fieldName:'LastName',type:'text',sortable:"true"},
     {label:'Phone',fieldName:'Phone',type:'phone',sortable:"true"},
     {label:'Email',fieldName:'Email',type:'email',sortable:"true"}
@@ -16,7 +15,6 @@ export default class DatatableLWC extends LightningElement {
     @track sortBy;
     @track sortDirection;
     @track sortdata;
-    draftValues = [];
 
     @wire(getContact)
     contacts(results){
@@ -28,46 +26,7 @@ export default class DatatableLWC extends LightningElement {
             this.error = results.error;
         }
     }
-    //edit value save
-    handleSave(event) {
-    // Convert datatable draft values into record objects
-    this.draftValues = event.detail.draftValues;
     
-    const inputsItems = this.draftValues.slice().map(draft => {
-        const fields = Object.assign({}, draft);
-        return { fields };
-    });
-
-    // Clear all datatable draft values
-    this.draftValues = [];
-
-    try {
-      // Update all records in parallel thanks to the UI API
-      const promises = inputsItems.map(recordInput => updateRecord(recordInput));
-    Promise.all(promises).then(res => {
-        this.dispatchEvent(
-            new ShowToastEvent({
-                title: 'Success',
-                message: 'Records Updated Successfully!!',
-                variant: 'success'
-            })
-        );
-        this.draftValues = [];
-        return this.refresh();
-    }).catch(error => {
-        this.dispatchEvent(
-            new ShowToastEvent({
-                title: 'Error',
-                message: 'An Error Occured!!'+error,
-                variant: 'error'
-            })
-        );
-    }).finally(() => {
-        this.draftValues = [];
-    });
-
-    }catch(error){}
-    }
 
 
    doSorting(event) {
